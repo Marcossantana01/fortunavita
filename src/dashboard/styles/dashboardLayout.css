@@ -1,0 +1,4 @@
+.sidebar-width {
+  flex: 0 0 280px !important;
+  max-width: 280px !important;
+}
