@@ -38,37 +38,44 @@ function normalizeText(value: string): string {
   return value
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase();
+    .toLowerCase()
+    .trim();
 }
 
 function getString(row: SupabaseRow, keys: string[], fallback = ""): string {
-  const value = keys.map((key) => row[key]).find((item) => item !== undefined && item !== null);
+  const value = keys
+    .map((key) => row[key])
+    .find((item) => item !== undefined && item !== null);
 
   return value === undefined || value === null ? fallback : String(value);
 }
 
 function getNumber(row: SupabaseRow, keys: string[]): number {
-  const value = keys.map((key) => row[key]).find((item) => item !== undefined && item !== null);
-  const numberValue = typeof value === "number" ? value : Number(String(value ?? "").replace(/[^\d,-]/g, "").replace(",", "."));
+  const value = keys
+    .map((key) => row[key])
+    .find((item) => item !== undefined && item !== null);
+
+  const numberValue =
+    typeof value === "number"
+      ? value
+      : Number(String(value ?? "").replace(/[^\d,-]/g, "").replace(",", "."));
 
   return Number.isFinite(numberValue) ? numberValue : 0;
 }
 
 function getLeadNonConversionReason(row: SupabaseRow, status: string): string {
-  const reason = getString(
-    row,
-    [
-      "justificativa_nao_conversao",
-      "motivo_nao_conversao",
-      "motivo_nao_convertido",
-      "justificativa_nao_convertido",
-      "justificativa",
-      "motivo_perda",
-      "observacao_perda",
-      "observacoes",
-      "observacao",
-    ],
-  );
+  const reason = getString(row, [
+    "justificativa_nao_conversao",
+    "motivo_nao_conversao",
+    "motivo_nao_convertido",
+    "justificativa_nao_convertido",
+    "justificativa",
+    "motivo_perda",
+    "observacao_perda",
+    "observacoes",
+    "observacao",
+  ]);
+
   const message = getString(row, ["mensagem"]);
   const reasonLabel = "Justificativa de nao conversao:";
   const reasonIndex = message.indexOf(reasonLabel);
@@ -106,10 +113,10 @@ function getStatus(value: string): ConsultorTableRow["status"] {
   const normalized = normalizeText(value);
 
   if (
-    normalized.includes("ganho")
-    || normalized.includes("fechado")
-    || normalized.includes("contrato")
-    || normalized.includes("convertido")
+    normalized.includes("ganho") ||
+    normalized.includes("fechado") ||
+    normalized.includes("contrato") ||
+    normalized.includes("convertido")
   ) {
     return "Ganho";
   }
@@ -123,38 +130,49 @@ function getStatus(value: string): ConsultorTableRow["status"] {
 
 async function getConsultorId(): Promise<string> {
   const rows = await fetchSupabaseRows("usuarios", {
-    filters: { email: "consultor@seopartners.com.br" },
-    limit: 1,
+    limit: 100,
+    revalidate: 0,
   });
 
-  return getString(rows[0] ?? {}, ["id"], "");
+  const consultor = rows.find((row) => {
+    const nome = normalizeText(getString(row, ["nome", "name"]));
+    const tipo = normalizeText(getString(row, ["tipo", "role", "perfil"]));
+
+    return nome.includes("arthur dos santos amaral") && tipo.includes("consultor");
+  });
+
+  return getString(consultor ?? {}, ["id"], "");
 }
 
 function buildLeadRows(rows: SupabaseRow[]): ConsultorTableRow[] {
-  return rows.filter((row) => {
-    const status = normalizeText(getString(row, ["status"], ""));
+  return rows
+    .filter((row) => {
+      const status = normalizeText(getString(row, ["status"], ""));
 
-    return !["recusado", "perdido", "nao_fechou", "nao fechou"].some((closedStatus) => status.includes(closedStatus));
-  }).map((row) => {
-    const status = getString(row, ["status"], "-");
-    const nonConversionReason = getLeadNonConversionReason(row, status);
+      return !["recusado", "perdido", "nao_fechou", "nao fechou"].some((closedStatus) =>
+        status.includes(closedStatus),
+      );
+    })
+    .map((row) => {
+      const status = getString(row, ["status"], "-");
+      const nonConversionReason = getLeadNonConversionReason(row, status);
 
-    return {
-      actions: "lead",
-      cells: [
-        getString(row, ["nome"], "Lead sem nome"),
-        getString(row, ["origem"], "-"),
-        getString(row, ["prioridade"], "-"),
-        getString(row, ["interesse"], "-"),
-        getString(row, ["telefone"], "-"),
-        status,
-        nonConversionReason,
-      ],
-      id: getString(row, ["id"], ""),
-      status: getStatus(status),
-      statusCellIndex: 5,
-    };
-  });
+      return {
+        actions: "lead",
+        cells: [
+          getString(row, ["nome"], "Lead sem nome"),
+          getString(row, ["origem"], "-"),
+          getString(row, ["prioridade"], "-"),
+          getString(row, ["interesse"], "-"),
+          getString(row, ["telefone"], "-"),
+          status,
+          nonConversionReason,
+        ],
+        id: getString(row, ["id"], ""),
+        status: getStatus(status),
+        statusCellIndex: 5,
+      };
+    });
 }
 
 function buildClientRows(rows: SupabaseRow[]): ConsultorTableRow[] {
@@ -213,7 +231,9 @@ function buildBusinessRows(rows: SupabaseRow[]): ConsultorTableRow[] {
   }));
 }
 
-export async function getConsultorSectionData(section: ConsultorSection): Promise<ConsultorSectionData> {
+export async function getConsultorSectionData(
+  section: ConsultorSection,
+): Promise<ConsultorSectionData> {
   const consultorId = await getConsultorId();
   const activeItem = sectionLabels[section];
 
@@ -233,12 +253,22 @@ export async function getConsultorSectionData(section: ConsultorSection): Promis
       filters: { consultor_id: consultorId },
       limit: 50,
       order: "created_at.desc",
+      revalidate: 0,
     });
 
     return {
       activeItem,
       emptyMessage: "Nenhum lead encontrado para este consultor.",
-      headers: ["Lead", "Origem", "Prioridade", "Interesse", "Telefone", "Status", "Por que nao converteu", "Acoes"],
+      headers: [
+        "Lead",
+        "Origem",
+        "Prioridade",
+        "Interesse",
+        "Telefone",
+        "Status",
+        "Por que nao converteu",
+        "Acoes",
+      ],
       rows: buildLeadRows(rows),
       subtitle: "Leads recebidos, prioridade e etapa atual de atendimento.",
       title: "Meus Leads",
@@ -250,6 +280,7 @@ export async function getConsultorSectionData(section: ConsultorSection): Promis
       filters: { consultor_id: consultorId },
       limit: 50,
       order: "created_at.desc",
+      revalidate: 0,
     });
 
     return {
@@ -267,6 +298,7 @@ export async function getConsultorSectionData(section: ConsultorSection): Promis
       filters: { consultor_id: consultorId },
       limit: 50,
       order: "data_agendamento.asc",
+      revalidate: 0,
     });
 
     return {
@@ -284,8 +316,15 @@ export async function getConsultorSectionData(section: ConsultorSection): Promis
       filters: { consultor_id: consultorId },
       limit: 50,
       order: "created_at.desc",
+      revalidate: 0,
     });
-    const proposals = rows.filter((row) => !["ganho", "fechado", "concluido", "concluida"].includes(normalizeText(getString(row, ["status"], ""))));
+
+    const proposals = rows.filter(
+      (row) =>
+        !["ganho", "fechado", "concluido", "concluida"].includes(
+          normalizeText(getString(row, ["status"], "")),
+        ),
+    );
 
     return {
       activeItem,
@@ -302,6 +341,7 @@ export async function getConsultorSectionData(section: ConsultorSection): Promis
       filters: { consultor_id: consultorId },
       limit: 50,
       order: "data_inicio.asc",
+      revalidate: 0,
     });
 
     return {
@@ -318,10 +358,16 @@ export async function getConsultorSectionData(section: ConsultorSection): Promis
     filters: { consultor_id: consultorId },
     limit: 50,
     order: "created_at.desc",
+    revalidate: 0,
   });
-  const contracts = rows.filter((row) => ["ganho", "fechado", "concluido", "concluida", "contrato"].some((status) =>
-    normalizeText(`${getString(row, ["status"], "")} ${getString(row, ["etapa"], "")}`).includes(status),
-  ));
+
+  const contracts = rows.filter((row) =>
+    ["ganho", "fechado", "concluido", "concluida", "contrato"].some((status) =>
+      normalizeText(`${getString(row, ["status"], "")} ${getString(row, ["etapa"], "")}`).includes(
+        status,
+      ),
+    ),
+  );
 
   return {
     activeItem,
