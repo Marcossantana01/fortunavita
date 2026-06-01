@@ -269,17 +269,17 @@ const basePerformance: DashboardPerformance = {
 const roleConfig: Record<DashboardRole, Pick<DashboardData, "activeItem" | "user" | "financial">> = {
   admin: {
     activeItem: "Pagina Inicial",
-    user: { name: "Arthur Santana", role: "Administrador", avatar: userAvatar },
+    user: { name: "Administrador", role: "Administrador", avatar: userAvatar },
     financial: { income: "R$ 284.6k", expenses: "R$ 86.3k", conversion: "64.8%", goal: "78%" },
   },
   gestor: {
     activeItem: "Pagina Inicial",
-    user: { name: "Arthur Santana", role: "Gestor", avatar: userAvatar },
+    user: { name: "Gestor", role: "Gestor", avatar: userAvatar },
     financial: { income: "R$ 212.4k", expenses: "R$ 64.8k", conversion: "61.2%", goal: "72%" },
   },
   consultor: {
     activeItem: "Pagina Principal",
-    user: { name: "Arthur Santana", role: "Consultor", avatar: userAvatar },
+    user: { name: "ARTHUR DOS SANTOS AMARAL", role: "Consultor", avatar: userAvatar },
     financial: {
       income: "R$ 96.8k",
       incomeLabel: "Comissao prevista",
@@ -292,12 +292,12 @@ const roleConfig: Record<DashboardRole, Pick<DashboardData, "activeItem" | "user
   },
   recepcao: {
     activeItem: "Pagina Principal",
-    user: { name: "Arthur Santana", role: "Recepcao", avatar: userAvatar },
+    user: { name: "Recepcao", role: "Recepcao", avatar: userAvatar },
     financial: { income: "R$ 48.2k", expenses: "R$ 12.9k", conversion: "52.6%", goal: "64%" },
   },
   financeiro: {
     activeItem: "Pagina Principal",
-    user: { name: "Arthur Santana", role: "Financeiro", avatar: userAvatar },
+    user: { name: "Financeiro", role: "Financeiro", avatar: userAvatar },
     financial: {
       income: "R$ 0",
       incomeLabel: "Receita recebida",
@@ -1056,7 +1056,7 @@ async function getConsultantDashboardData() {
   const today = getTodayDateString();
   const monthStart = getMonthStartDateString();
   const consultantRows = await fetchSupabaseRows("usuarios", {
-    filters: { email: "consultor@seopartners.com.br" },
+    filters: { email: "arthurdossantosamaral15@gmail.com" },
     limit: 1,
     select: "id",
   });

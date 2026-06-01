@@ -1,5 +1,7 @@
 import { fetchSupabaseRows, type SupabaseRow } from "@/services/supabaseClient";
 
+const ARTHUR_EMAIL = "arthurdossantosamaral15@gmail.com";
+
 export type ConsultorSection =
   | "leads"
   | "clientes"
@@ -130,15 +132,15 @@ function getStatus(value: string): ConsultorTableRow["status"] {
 
 async function getConsultorId(): Promise<string> {
   const rows = await fetchSupabaseRows("usuarios", {
+    filters: { email: ARTHUR_EMAIL },
     limit: 100,
     revalidate: 0,
   });
 
   const consultor = rows.find((row) => {
-    const nome = normalizeText(getString(row, ["nome", "name"]));
     const tipo = normalizeText(getString(row, ["tipo", "role", "perfil"]));
 
-    return nome.includes("arthur dos santos amaral") && tipo.includes("consultor");
+    return tipo.includes("consultor");
   });
 
   return getString(consultor ?? {}, ["id"], "");
