@@ -4,8 +4,25 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Fortuna Vita",
-  description: "Consultoria Financeira",
+  title: "Fortuna Vita | Consultoria Financeira e Planejamento Patrimonial",
+  description:
+    "Especialistas em consultoria financeira, planejamento patrimonial, investimentos e proteção patrimonial.",
+  metadataBase: new URL("https://fortunavita.com.br"),
+  openGraph: {
+    title: "Fortuna Vita | Consultoria Financeira e Planejamento Patrimonial",
+    description:
+      "Especialistas em consultoria financeira, planejamento patrimonial, investimentos e proteção patrimonial.",
+    url: "https://fortunavita.com.br",
+    siteName: "Fortuna Vita",
+    locale: "pt_BR",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Fortuna Vita | Consultoria Financeira e Planejamento Patrimonial",
+    description:
+      "Especialistas em consultoria financeira, planejamento patrimonial, investimentos e proteção patrimonial.",
+  },
 };
 
 export default function RootLayout({
