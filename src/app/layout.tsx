@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "./globals.css";
@@ -33,6 +34,19 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=AW-18204680927"
+          strategy="afterInteractive"
+        />
+        <Script id="google-ads-tag" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag("js", new Date());
+            gtag("config", "AW-18204680927");
+          `}
+        </Script>
+
         {children}
 
         <script
